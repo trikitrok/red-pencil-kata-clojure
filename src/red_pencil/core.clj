@@ -2,10 +2,12 @@
   (:require
     [red-pencil.days :as days]))
 
+(def ^:private reduction-ratio-range [0.05 0.3])
+
+(def ^:private minimum-price-duration 30)
+
 (defn- reduction-ratio [price new-price]
   (/ (- price new-price) price))
-
-(def ^:private reduction-ratio-range [0.05 0.3])
 
 (defn- price-reduction-in-range?
   [{price :figure} {new-price :figure} [min-reduction-ratio max-reduction-ratio]]
@@ -20,7 +22,8 @@
   (days/from-ms (- new-price-ts old-price-ts)))
 
 (defn- old-price-stable-enough? [price new-price]
-  (> (price-duration-in-days price new-price) 30))
+  (> (price-duration-in-days price new-price)
+     minimum-price-duration))
 
 (defn- on-promotion? [{:keys [price]} new-price]
   (and (price-reduction? price new-price)
