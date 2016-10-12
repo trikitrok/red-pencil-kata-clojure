@@ -2,7 +2,9 @@
   (:require
     [red-pencil.days :as days]))
 
-(def ^:private reduction-ratio-range [0.05 0.3])
+(def ^:private max-reduction-ratio 0.3)
+
+(def ^:private reduction-ratio-range [0.05 max-reduction-ratio])
 
 (def ^:private minimum-price-duration 30)
 
@@ -38,17 +40,20 @@
        (promotion-still-lasts? price query-ts)))
 
 (defn- overall-reduction-in-range?
-  [{original-price :figure} {price :figure} max-reduction-ratio]
+  [{original-price :figure} {price :figure}]
   (<= (reduction-ratio original-price price) max-reduction-ratio))
 
 (defn original-price [good]
   (-> good :previous-prices first))
 
+(defn- previous-price [good]
+  (-> good :previous-prices last))
+
 (defn on-promotion? [good query-ts]
   (let [price (:price good)
-        previous-price (-> good :previous-prices last)]
+        previous-price (previous-price good)]
     (if (previous-price-stable-enough? previous-price price)
       (activates-promotion? previous-price price query-ts)
       (and (price-reduction? previous-price price)
-           (overall-reduction-in-range? (original-price good) price 0.3)
+           (overall-reduction-in-range? (original-price good) price)
            (activates-promotion? (price-before-previous-price good) previous-price query-ts)))))
