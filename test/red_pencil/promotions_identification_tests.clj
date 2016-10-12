@@ -18,4 +18,32 @@
           new-price (price 250 (days/to-ms 35))
           good {:price new-price :previous-prices [previous-price]}]
       (promotions-identification/on-promotion? good) => false))
-  )
+
+  (facts
+    "price reductions activate promotions"
+
+    (let [previous-price (price 100 (days/to-ms 0))
+          price-reduced-5-percent (price 95 (days/to-ms 55))
+          good {:price price-reduced-5-percent :previous-prices [previous-price]}]
+      (promotions-identification/on-promotion? good) => true)
+
+    (let [previous-price (price 100 (days/to-ms 0))
+          price-reduced-30-percent (price 70 (days/to-ms 55))
+          good {:price price-reduced-30-percent :previous-prices [previous-price]}]
+      (promotions-identification/on-promotion? good) => true)
+
+    (fact
+      "except when the price is reduced less than 5%"
+      (let [previous-price (price 100 (days/to-ms 0))
+            new-price (price 98 (days/to-ms 45))
+            good {:price new-price :previous-prices [previous-price]}]
+        (promotions-identification/on-promotion? good) => false))
+
+    (fact
+      "except when the price is reduced more than 30%"
+      (let [previous-price (price 100 (days/to-ms 0))
+            new-price (price 69 (days/to-ms 31))
+            good {:price new-price :previous-prices [previous-price]}]
+        (promotions-identification/on-promotion? good) => false))
+
+    ))
