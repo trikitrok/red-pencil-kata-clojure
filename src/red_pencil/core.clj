@@ -13,9 +13,14 @@
 (defn- price-reduction? [{price :figure} {new-price :figure}]
   (< new-price price))
 
+(defn- old-price-stable-enough? [{old-price-ts :change-ts} {new-price-ts :change-ts}]
+  (let [ms-in-day (* 24 60 60 1000)]
+    (> (/ (- new-price-ts old-price-ts) ms-in-day) 30)))
+
 (defn- on-promotion? [{:keys [price]} new-price]
   (and (price-reduction? price new-price)
-       (price-reduction-in-range? price new-price reduction-ratio-range)))
+       (price-reduction-in-range? price new-price reduction-ratio-range)
+       (old-price-stable-enough? price new-price)))
 
 (defn change-price [good new-price]
   (-> good
