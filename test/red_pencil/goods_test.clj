@@ -2,11 +2,10 @@
   (:require
     [midje.sweet :refer :all]
     [red-pencil.goods :as goods]
-    [red-pencil.days :as days]))
+    [red-pencil.days :as days]
+    [red-pencil.price :as price]))
 
-(defn- price [figure change-ts]
-  {:figure figure
-   :change-ts change-ts})
+(def price price/make)
 
 (facts
   "about changing good prices"

@@ -2,11 +2,10 @@
   (:require
     [midje.sweet :refer :all]
     [red-pencil.days :as days]
-    [red-pencil.promotions-identification :as promotions-identification]))
+    [red-pencil.promotions-identification :as promotions-identification]
+    [red-pencil.price :as price]))
 
-(defn- price [figure change-ts]
-  {:figure figure
-   :change-ts change-ts})
+(def price price/make)
 
 (facts
   "about red pencil promotions"
