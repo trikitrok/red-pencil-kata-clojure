@@ -37,10 +37,18 @@
        (price-reduction-in-range? previous-price price reduction-ratio-range)
        (promotion-still-lasts? price query-ts)))
 
+(defn- overall-reduction-in-range?
+  [{original-price :figure} {price :figure} max-reduction-ratio]
+  (<= (reduction-ratio original-price price) max-reduction-ratio))
+
+(defn original-price [good]
+  (-> good :previous-prices first))
+
 (defn on-promotion? [good query-ts]
   (let [price (:price good)
         previous-price (-> good :previous-prices last)]
     (if (previous-price-stable-enough? previous-price price)
       (activates-promotion? previous-price price query-ts)
       (and (price-reduction? previous-price price)
-        (activates-promotion? (price-before-previous-price good) previous-price query-ts)))))
+           (overall-reduction-in-range? (original-price good) price 0.3)
+           (activates-promotion? (price-before-previous-price good) previous-price query-ts)))))

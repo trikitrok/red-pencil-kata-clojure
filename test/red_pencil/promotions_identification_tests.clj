@@ -100,12 +100,12 @@
           good query-ts-after-promotion-expired) => false)))
 
   (fact
-    "a further price reduction during a red pencil promotion, will not prolong the promotion"
+    "a further price reduction during a promotion, will not prolong the promotion"
     (let [first-price (price 100 (days/to-ms 0))
           second-price-change-ts (days/to-ms 35)
-          second-price (price 80 second-price-change-ts)
+          second-price (price 90 second-price-change-ts)
           third-price-change-ts (days/to-ms 45)
-          third-price (price 60 third-price-change-ts)
+          third-price (price 70 third-price-change-ts)
           good {:price third-price :previous-prices [first-price second-price]}
           query-ts-before-first-promotion-expired (+ second-price-change-ts (days/to-ms 30))
           query-ts-after-first-promotion-expired (+ second-price-change-ts (days/to-ms 31))]
@@ -115,12 +115,25 @@
         good query-ts-after-first-promotion-expired) => false))
 
   (fact
-    "a price rise during a red pencil promotion, will stop the promotion"
+    "a price rise during a promotion, will end the promotion"
     (let [first-price (price 100 (days/to-ms 0))
           second-price-change-ts (days/to-ms 35)
           second-price (price 80 second-price-change-ts)
           third-price-change-ts (days/to-ms 45)
           third-price (price 90 third-price-change-ts)
+          good {:price third-price :previous-prices [first-price second-price]}
+          query-ts (+ second-price-change-ts (days/to-ms 10))]
+      (promotions-identification/on-promotion?
+        good query-ts) => false))
+
+  (fact
+    "a price reduction during a promotion that causes an overall reduction
+    of more than 30% with regard to the original price, will end the promotion"
+    (let [first-price (price 100 (days/to-ms 0))
+          second-price-change-ts (days/to-ms 35)
+          second-price (price 80 second-price-change-ts)
+          third-price-change-ts (days/to-ms 45)
+          third-price (price 60 third-price-change-ts)
           good {:price third-price :previous-prices [first-price second-price]}
           query-ts (+ second-price-change-ts (days/to-ms 10))]
       (promotions-identification/on-promotion?
