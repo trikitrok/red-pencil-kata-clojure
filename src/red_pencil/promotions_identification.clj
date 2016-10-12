@@ -24,7 +24,7 @@
 (defn- old-price-stable-enough? [old-price price]
   (> (price-duration-in-days old-price price) minimum-price-duration))
 
-(defn on-promotion? [good]
+(defn on-promotion? [good query-ts]
   (let [price (:price good)
         old-price (-> good :previous-prices last)]
     (and (price-reduction? old-price price)
