@@ -46,4 +46,11 @@
             good {:price new-price :previous-prices [previous-price]}]
         (promotions-identification/on-promotion? good) => false))
 
+    (fact
+      "except when the previous price has been stable for less than 30 days"
+      (let [previous-price (price 100 (days/to-ms 0))
+            new-price (price 80 (days/to-ms 10))
+            good {:price new-price :previous-prices [previous-price]}]
+        (promotions-identification/on-promotion? good) => false))
+
     ))
