@@ -7,7 +7,7 @@
   (:figure price))
 
 (defn- update-price-figure [new-price price]
-  (assoc price :figure new-price))
+  (assoc price :figure (get-price-figure new-price)))
 
 (def ^:private reduction-ratio-range [0.05 0.3])
 
@@ -17,8 +17,8 @@
          (<= reduction-ratio max-reduction-ratio))))
 
 (defn- on-promotion? [{:keys [price]} new-price]
-  (and (< new-price (get-price-figure price))
-       (reduction-in-range? (get-price-figure price) new-price reduction-ratio-range)))
+  (and (< (get-price-figure new-price) (get-price-figure price))
+       (reduction-in-range? (get-price-figure price) (get-price-figure new-price) reduction-ratio-range)))
 
 (defn change-price [good new-price]
   (-> good
