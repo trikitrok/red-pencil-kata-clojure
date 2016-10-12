@@ -6,6 +6,8 @@
 
 (def ^:private minimum-price-duration 30)
 
+(def ^:private maximum-promotion-duration 30)
+
 (defn- reduction-ratio [old-price price]
   (/ (- old-price price) old-price))
 
@@ -24,9 +26,13 @@
 (defn- old-price-stable-enough? [old-price price]
   (>= (price-duration-in-days old-price price) minimum-price-duration))
 
+(defn- promotion-still-lasts? [{:keys [change-ts]} query-ts]
+  (<= (days/from-ms (- query-ts change-ts)) maximum-promotion-duration))
+
 (defn on-promotion? [good query-ts]
   (let [price (:price good)
         old-price (-> good :previous-prices last)]
     (and (price-reduction? old-price price)
          (price-reduction-in-range? old-price price reduction-ratio-range)
-         (old-price-stable-enough? old-price price))))
+         (old-price-stable-enough? old-price price)
+         (promotion-still-lasts? price query-ts))))

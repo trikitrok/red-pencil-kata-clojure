@@ -62,4 +62,13 @@
             new-price (price 80 price-change-ts)
             good {:price new-price :previous-prices [previous-price]}
             query-ts (+ price-change-ts (days/to-ms 2))]
+        (promotions-identification/on-promotion? good query-ts) => false))
+
+    (fact
+      "except when the price changed was more than 30 days"
+      (let [previous-price (price 100 (days/to-ms 0))
+            price-change-ts (days/to-ms 30)
+            new-price (price 80 price-change-ts)
+            good {:price new-price :previous-prices [previous-price]}
+            query-ts (+ price-change-ts (days/to-ms 31))]
         (promotions-identification/on-promotion? good query-ts) => false))))
