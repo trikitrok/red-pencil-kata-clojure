@@ -23,28 +23,38 @@
 (defn- promotion-still-lasts? [{:keys [change-ts]} query-ts]
   (<= (days/from-ms (- query-ts change-ts)) maximum-promotion-duration))
 
-(defn- price-before-previous-price [good]
-  (->> good :previous-prices (take-last 2) first))
-
-(defn- activates-promotion? [previous-price price query-ts]
-  (and (price/reduction? previous-price price)
-       (price-reduction-in-range? previous-price price reduction-ratio-range)
-       (promotion-still-lasts? price query-ts)))
-
 (defn- overall-reduction-in-range? [original-price price]
   (<= (price/reduction-ratio original-price price) max-reduction-ratio))
 
 (defn original-price [good]
   (-> good :previous-prices first))
 
-(defn- previous-price [good]
-  (-> good :previous-prices last))
+(defn- next-price-activating-promotion [initial-price price-activating-promotion price]
+  (let [previous-price (or price-activating-promotion initial-price)]
+    (if (and (previous-price-stable-enough? previous-price price)
+             (price/reduction? previous-price price)
+             (price-reduction-in-range? previous-price price reduction-ratio-range))
+      price
+      previous-price)))
+
+(defn- find-price-activating-promotion [previous-prices]
+  (reduce (partial next-price-activating-promotion (first previous-prices))
+          nil
+          (rest previous-prices)))
+
+(defn- promotion-already-activated? [price-activating-promotion]
+  (not (nil? price-activating-promotion)))
 
 (defn on-promotion? [good query-ts]
   (let [price (:price good)
-        previous-price (previous-price good)]
-    (if (previous-price-stable-enough? previous-price price)
-      (activates-promotion? previous-price price query-ts)
-      (and (price/reduction? previous-price price)
-           (overall-reduction-in-range? (original-price good) price)
-           (activates-promotion? (price-before-previous-price good) previous-price query-ts)))))
+        original-price (original-price good)
+        price-activating-promotion (find-price-activating-promotion (:previous-prices good))]
+
+    (if (promotion-already-activated? price-activating-promotion)
+      (and (promotion-still-lasts? price-activating-promotion query-ts)
+           (price/reduction? price-activating-promotion price)
+           (overall-reduction-in-range? original-price price))
+      (and (promotion-still-lasts? price query-ts)
+           (price/reduction? original-price price)
+           (price-reduction-in-range? original-price price reduction-ratio-range)
+           (previous-price-stable-enough? original-price price)))))
