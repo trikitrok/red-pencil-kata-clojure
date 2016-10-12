@@ -1,12 +1,18 @@
 (ns red-pencil.core)
 
-(defn- reduction-percentage [price new-price]
+(defn- reduction-ratio [price new-price]
   (/ (- price new-price) 100.0))
+
+(def ^:private reduction-ratio-range [0.1 0.3])
+
+(defn- reduction-in-range? [price new-price [min-reduction-ratio max-reduction-ratio]]
+  (let [reduction-ratio (reduction-ratio price new-price)]
+    (and (>= reduction-ratio min-reduction-ratio)
+         (<= reduction-ratio max-reduction-ratio))))
 
 (defn- on-promotion? [{:keys [price]} new-price]
   (and (< new-price price)
-       (>= (reduction-percentage price new-price) 0.1)
-       (<= (reduction-percentage price new-price) 0.3)))
+       (reduction-in-range? price new-price reduction-ratio-range)))
 
 (defn change-price [good new-price]
   (-> good
