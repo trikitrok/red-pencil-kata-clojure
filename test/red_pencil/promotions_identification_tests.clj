@@ -92,13 +92,11 @@
             new-price (price 80 price-change-ts)
             good {:price new-price :previous-prices [previous-price]}
             query-ts-before-promotion-expired (+ price-change-ts (days/to-ms 30))
-            query-ts-after-promotion-expired(+ price-change-ts (days/to-ms 31))]
+            query-ts-after-promotion-expired (+ price-change-ts (days/to-ms 31))]
         (promotions-identification/on-promotion?
           good query-ts-before-promotion-expired) => true
         (promotions-identification/on-promotion?
-          good query-ts-after-promotion-expired) => false))
-
-    )
+          good query-ts-after-promotion-expired) => false)))
 
   (fact
     "a further price reduction during a promotion, will not prolong the promotion"
@@ -142,4 +140,22 @@
       (promotions-identification/on-promotion?
         good query-ts) => false))
 
-  )
+  (fact
+    "after a promotion is ended additional promotions may follow
+    as long as the price was stable for 30 days and
+    these 30 days don’t intersect with a previous promotion"
+    (let [first-price (price 100 (days/to-ms 0))
+          second-price (price 80 (days/to-ms 35))
+          third-price (price 60 (days/to-ms 66))
+          good {:price third-price :previous-prices [first-price second-price]}
+          query-ts (days/to-ms 67)]
+      (promotions-identification/on-promotion?
+        good query-ts) => false)
+
+    (let [first-price (price 100 (days/to-ms 0))
+          second-price (price 80 (days/to-ms 35))
+          third-price (price 60 (days/to-ms 96))
+          good {:price third-price :previous-prices [first-price second-price]}
+          query-ts (days/to-ms 97)]
+      (promotions-identification/on-promotion?
+        good query-ts) => true)))

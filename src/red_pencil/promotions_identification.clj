@@ -29,6 +29,9 @@
 (defn original-price [good]
   (-> good :previous-prices first))
 
+(defn previous-price [good]
+  (-> good :previous-prices last))
+
 (defn- next-price-activating-promotion [initial-price price-activating-promotion price]
   (let [previous-price (or price-activating-promotion initial-price)]
     (if (and (previous-price-stable-enough? previous-price price)
@@ -45,15 +48,24 @@
 (defn- promotion-already-activated? [price-activating-promotion]
   (not (nil? price-activating-promotion)))
 
+(defn promotion-ended-ts [{:keys [change-ts]}]
+  (+ change-ts (days/to-ms 30)))
+
 (defn on-promotion? [good query-ts]
   (let [price (:price good)
         original-price (original-price good)
+        previous-price (previous-price good)
         price-activating-promotion (find-price-activating-promotion (:previous-prices good))]
-
     (if (promotion-already-activated? price-activating-promotion)
-      (and (promotion-still-lasts? price-activating-promotion query-ts)
-           (price/reduction? price-activating-promotion price)
-           (overall-reduction-in-range? original-price price))
+      (if (>= (- (price/duration-in-days price-activating-promotion price) 30)
+              minimum-price-duration)
+        (and (promotion-still-lasts? price query-ts)
+             (price/reduction? previous-price price)
+             (price-reduction-in-range? previous-price price reduction-ratio-range)
+             (previous-price-stable-enough? previous-price price))
+        (and (promotion-still-lasts? price-activating-promotion query-ts)
+               (price/reduction? price-activating-promotion price)
+               (overall-reduction-in-range? original-price price)))
       (and (promotion-still-lasts? price query-ts)
            (price/reduction? original-price price)
            (price-reduction-in-range? original-price price reduction-ratio-range)
