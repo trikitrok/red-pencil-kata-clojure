@@ -31,7 +31,7 @@
       (promotions-identification/on-promotion? good query-ts) => true)
 
     (let [previous-price (price 100 (days/to-ms 0))
-          price-change-ts (days/to-ms 55)
+          price-change-ts (days/to-ms 30)
           price-reduced-30-percent (price 70 price-change-ts)
           good {:price price-reduced-30-percent :previous-prices [previous-price]}
           query-ts (+ price-change-ts (days/to-ms 4))]

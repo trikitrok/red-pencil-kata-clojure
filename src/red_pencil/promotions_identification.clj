@@ -22,7 +22,7 @@
   (days/from-ms (- new-price-ts old-price-ts)))
 
 (defn- old-price-stable-enough? [old-price price]
-  (> (price-duration-in-days old-price price) minimum-price-duration))
+  (>= (price-duration-in-days old-price price) minimum-price-duration))
 
 (defn on-promotion? [good query-ts]
   (let [price (:price good)
