@@ -5,7 +5,8 @@
 
 (defn- on-promotion? [{:keys [price]} new-price]
   (and (< new-price price)
-       (>= (reduction-percentage price new-price) 0.1)))
+       (>= (reduction-percentage price new-price) 0.1)
+       (< (reduction-percentage price new-price) 0.3)))
 
 (defn change-price [good new-price]
   (-> good

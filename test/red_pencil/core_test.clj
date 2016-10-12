@@ -17,5 +17,9 @@
       (red-pencil/change-price good 90) => {:price 90 :on-promotion true}
 
       (fact
-        "except when the price is reduced less that 10%"
-        (red-pencil/change-price good 95) => {:price 95 :on-promotion false}))))
+        "except when the price is reduced less than 10%"
+        (red-pencil/change-price good 95) => {:price 95 :on-promotion false})
+
+      (fact
+        "except when the price is reduced more than 30%"
+        (red-pencil/change-price good 69) => {:price 69 :on-promotion false}))))
