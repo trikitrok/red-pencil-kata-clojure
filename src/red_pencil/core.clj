@@ -3,7 +3,7 @@
 (defn- reduction-ratio [price new-price]
   (/ (- price new-price) price))
 
-(def ^:private reduction-ratio-range [0.1 0.3])
+(def ^:private reduction-ratio-range [0.05 0.3])
 
 (defn- reduction-in-range? [price new-price [min-reduction-ratio max-reduction-ratio]]
   (let [reduction-ratio (reduction-ratio price new-price)]
