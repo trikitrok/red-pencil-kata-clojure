@@ -87,10 +87,29 @@
         (promotions-identification/on-promotion? good query-ts) => false))
 
     (fact
-      "when the price changed more than 30 days"
+      "when the price changed more than 30 days ago"
       (let [previous-price (price 100 (days/to-ms 0))
             price-change-ts (days/to-ms 30)
             new-price (price 80 price-change-ts)
             good {:price new-price :previous-prices [previous-price]}
-            query-ts (+ price-change-ts (days/to-ms 31))]
-        (promotions-identification/on-promotion? good query-ts) => false))))
+            query-ts-before-promotion-expired (+ price-change-ts (days/to-ms 30))
+            query-ts-after-promotion-expired(+ price-change-ts (days/to-ms 31))]
+        (promotions-identification/on-promotion?
+          good query-ts-before-promotion-expired) => true
+        (promotions-identification/on-promotion?
+          good query-ts-after-promotion-expired) => false)))
+
+  (fact
+    "a further reduction during a red pencil promotion, will not prolong the promotion"
+    (let [first-price (price 100 (days/to-ms 0))
+          second-price-change-ts (days/to-ms 35)
+          second-price (price 80 second-price-change-ts)
+          third-price-change-ts (days/to-ms 45)
+          third-price (price 60 third-price-change-ts)
+          good {:price third-price :previous-prices [first-price second-price]}
+          query-ts-before-first-promotion-expired (+ second-price-change-ts (days/to-ms 30))
+          query-ts-after-first-promotion-expired (+ second-price-change-ts (days/to-ms 31))]
+      (promotions-identification/on-promotion?
+        good query-ts-before-first-promotion-expired) => true
+      (promotions-identification/on-promotion?
+        good query-ts-after-first-promotion-expired) => false)))

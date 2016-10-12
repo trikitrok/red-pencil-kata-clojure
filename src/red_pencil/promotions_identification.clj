@@ -29,10 +29,19 @@
 (defn- promotion-still-lasts? [{:keys [change-ts]} query-ts]
   (<= (days/from-ms (- query-ts change-ts)) maximum-promotion-duration))
 
+(defn- price-before-old-price [good]
+  (->> good :previous-prices (take-last 2) first))
+
 (defn on-promotion? [good query-ts]
   (let [price (:price good)
         old-price (-> good :previous-prices last)]
-    (and (price-reduction? old-price price)
-         (price-reduction-in-range? old-price price reduction-ratio-range)
-         (old-price-stable-enough? old-price price)
-         (promotion-still-lasts? price query-ts))))
+    (if (old-price-stable-enough? old-price price)
+      (and (price-reduction? old-price price)
+           (price-reduction-in-range? old-price price reduction-ratio-range)
+           (promotion-still-lasts? price query-ts))
+
+      (and (price-reduction? (price-before-old-price good) old-price)
+           (price-reduction-in-range? (price-before-old-price good) old-price reduction-ratio-range)
+           (promotion-still-lasts? old-price query-ts))
+      )
+    ))
