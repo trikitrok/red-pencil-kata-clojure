@@ -4,7 +4,7 @@
     [red-pencil.core :as red-pencil]))
 
 (defn- price [figure]
-  figure)
+  {:figure figure})
 
 (facts
   "about red pencil promotions"

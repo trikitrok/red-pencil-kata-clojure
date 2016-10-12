@@ -4,10 +4,10 @@
   (/ (- price new-price) price))
 
 (defn- get-price-figure [price]
-  price)
+  (:figure price))
 
 (defn- update-price-figure [new-price price]
-  new-price)
+  (assoc price :figure new-price))
 
 (def ^:private reduction-ratio-range [0.05 0.3])
 
