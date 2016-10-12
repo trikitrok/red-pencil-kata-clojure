@@ -42,4 +42,5 @@
         previous-price (-> good :previous-prices last)]
     (if (previous-price-stable-enough? previous-price price)
       (activates-promotion? previous-price price query-ts)
-      (activates-promotion? (price-before-previous-price good) previous-price query-ts))))
+      (and (price-reduction? previous-price price)
+        (activates-promotion? (price-before-previous-price good) previous-price query-ts)))))

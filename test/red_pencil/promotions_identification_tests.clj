@@ -100,7 +100,7 @@
           good query-ts-after-promotion-expired) => false)))
 
   (fact
-    "a further reduction during a red pencil promotion, will not prolong the promotion"
+    "a further price reduction during a red pencil promotion, will not prolong the promotion"
     (let [first-price (price 100 (days/to-ms 0))
           second-price-change-ts (days/to-ms 35)
           second-price (price 80 second-price-change-ts)
@@ -112,4 +112,16 @@
       (promotions-identification/on-promotion?
         good query-ts-before-first-promotion-expired) => true
       (promotions-identification/on-promotion?
-        good query-ts-after-first-promotion-expired) => false)))
+        good query-ts-after-first-promotion-expired) => false))
+
+  (fact
+    "a price rise during a red pencil promotion, will stop the promotion"
+    (let [first-price (price 100 (days/to-ms 0))
+          second-price-change-ts (days/to-ms 35)
+          second-price (price 80 second-price-change-ts)
+          third-price-change-ts (days/to-ms 45)
+          third-price (price 90 third-price-change-ts)
+          good {:price third-price :previous-prices [first-price second-price]}
+          query-ts (+ second-price-change-ts (days/to-ms 10))]
+      (promotions-identification/on-promotion?
+        good query-ts) => false)))
