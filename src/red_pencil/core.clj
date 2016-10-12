@@ -1,7 +1,7 @@
 (ns red-pencil.core)
 
 (defn- reduction-ratio [price new-price]
-  (/ (- price new-price) 100.0))
+  (/ (- price new-price) price))
 
 (def ^:private reduction-ratio-range [0.1 0.3])
 
