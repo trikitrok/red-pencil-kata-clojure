@@ -3,8 +3,9 @@
     [midje.sweet :refer :all]
     [red-pencil.core :as red-pencil]))
 
-(defn- price [figure]
-  {:figure figure})
+(defn- price [figure & {:keys [change-ts] :or {change-ts 0}}]
+  {:figure figure
+   :change-ts change-ts})
 
 (facts
   "about red pencil promotions"
