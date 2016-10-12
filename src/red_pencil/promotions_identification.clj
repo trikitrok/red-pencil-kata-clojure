@@ -55,13 +55,13 @@
   (>= (- (price/duration-in-days price-activating-promotion price) promotion-duration-in-days)
       minimum-price-duration))
 
-(defn- active-promotion? [previous-price price query-ts]
+(defn- new-promotion? [previous-price price query-ts]
   (and (promotion-still-lasts? price query-ts)
        (price/reduction? previous-price price)
        (price-reduction-in-range? previous-price price reduction-ratio-range)
        (previous-price-stable-enough? previous-price price)))
 
-(defn- keep-promotion-active? [original-price previous-price price query-ts]
+(defn- promotion-goes-on? [original-price previous-price price query-ts]
   (and (promotion-still-lasts? previous-price query-ts)
        (price/reduction? previous-price price)
        (overall-reduction-in-range? original-price price)))
@@ -73,6 +73,6 @@
         price-activating-promotion (find-price-activated-promotion (:previous-prices good))]
     (if (exist-previous-promotion? price-activating-promotion)
       (if (ended-promotion? price-activating-promotion price)
-        (active-promotion? previous-price price query-ts)
-        (keep-promotion-active? original-price price-activating-promotion price query-ts))
-      (active-promotion? original-price price query-ts))))
+        (new-promotion? previous-price price query-ts)
+        (promotion-goes-on? original-price price-activating-promotion price query-ts))
+      (new-promotion? original-price price query-ts))))
