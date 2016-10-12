@@ -2,7 +2,7 @@
 
 (def ^:private ms-in-day (* 24 60 60 1000))
 
-(defn- to-ms [num-days]
+(defn to-ms [num-days]
   (* num-days ms-in-day))
 
 (defn from-ms [ms]

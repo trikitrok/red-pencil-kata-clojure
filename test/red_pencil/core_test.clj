@@ -1,15 +1,14 @@
 (ns red-pencil.core-test
   (:require
     [midje.sweet :refer :all]
-    [red-pencil.core :as red-pencil]))
+    [red-pencil.core :as red-pencil]
+    [red-pencil.days :as days]))
 
 (defn- price [figure & {:keys [change-ts] :or {change-ts 0}}]
   {:figure figure
    :change-ts change-ts})
 
-(defn- days [num]
-  (let [ms-in-day (* 24 60 60 1000)]
-    (* num ms-in-day)))
+(def days days/to-ms)
 
 (defn- days-after [ts num]
   (+ ts (days num)))
