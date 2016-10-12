@@ -11,7 +11,9 @@
 
 (def ^:private maximum-promotion-duration 30)
 
-(defn price-reduction-in-range?
+(def ^:private promotion-duration-in-days 30)
+
+(defn- price-reduction-in-range?
   [previous-price price [min-reduction-ratio max-reduction-ratio]]
   (let [reduction-ratio (price/reduction-ratio previous-price price)]
     (and (>= reduction-ratio min-reduction-ratio)
@@ -26,10 +28,10 @@
 (defn- overall-reduction-in-range? [original-price price]
   (<= (price/reduction-ratio original-price price) max-reduction-ratio))
 
-(defn original-price [good]
+(defn- original-price [good]
   (-> good :previous-prices first))
 
-(defn previous-price [good]
+(defn- previous-price [good]
   (-> good :previous-prices last))
 
 (defn- next-price-activating-promotion [initial-price price-activating-promotion price]
@@ -40,33 +42,37 @@
       price
       previous-price)))
 
-(defn- find-price-activating-promotion [previous-prices]
-  (reduce (partial next-price-activating-promotion (first previous-prices))
-          nil
-          (rest previous-prices)))
+(defn- find-price-activated-promotion [previous-prices]
+  (reduce
+    (partial next-price-activating-promotion (first previous-prices))
+    nil
+    (rest previous-prices)))
 
-(defn- promotion-already-activated? [price-activating-promotion]
+(defn- exist-previous-promotion? [price-activating-promotion]
   (not (nil? price-activating-promotion)))
 
-(defn promotion-ended-ts [{:keys [change-ts]}]
-  (+ change-ts (days/to-ms 30)))
+(defn- ended-promotion? [price-activating-promotion price]
+  (>= (- (price/duration-in-days price-activating-promotion price) promotion-duration-in-days)
+      minimum-price-duration))
+
+(defn- active-promotion? [previous-price price query-ts]
+  (and (promotion-still-lasts? price query-ts)
+       (price/reduction? previous-price price)
+       (price-reduction-in-range? previous-price price reduction-ratio-range)
+       (previous-price-stable-enough? previous-price price)))
+
+(defn- keep-promotion-active? [original-price previous-price price query-ts]
+  (and (promotion-still-lasts? previous-price query-ts)
+       (price/reduction? previous-price price)
+       (overall-reduction-in-range? original-price price)))
 
 (defn on-promotion? [good query-ts]
   (let [price (:price good)
         original-price (original-price good)
         previous-price (previous-price good)
-        price-activating-promotion (find-price-activating-promotion (:previous-prices good))]
-    (if (promotion-already-activated? price-activating-promotion)
-      (if (>= (- (price/duration-in-days price-activating-promotion price) 30)
-              minimum-price-duration)
-        (and (promotion-still-lasts? price query-ts)
-             (price/reduction? previous-price price)
-             (price-reduction-in-range? previous-price price reduction-ratio-range)
-             (previous-price-stable-enough? previous-price price))
-        (and (promotion-still-lasts? price-activating-promotion query-ts)
-               (price/reduction? price-activating-promotion price)
-               (overall-reduction-in-range? original-price price)))
-      (and (promotion-still-lasts? price query-ts)
-           (price/reduction? original-price price)
-           (price-reduction-in-range? original-price price reduction-ratio-range)
-           (previous-price-stable-enough? original-price price)))))
+        price-activating-promotion (find-price-activated-promotion (:previous-prices good))]
+    (if (exist-previous-promotion? price-activating-promotion)
+      (if (ended-promotion? price-activating-promotion price)
+        (active-promotion? previous-price price query-ts)
+        (keep-promotion-active? original-price price-activating-promotion price query-ts))
+      (active-promotion? original-price price query-ts))))
